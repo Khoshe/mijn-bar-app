@@ -56,6 +56,11 @@
 
     <!-- SCHERM 2: COCKTAILKAART -->
     <div id="menu-panel" class="menu-screen">
+                <!-- Live Wachtrij Indicator -->
+        <div id="queue-indicator" style="background: #1f1f26; border: 1px solid #333; border-radius: 6px; padding: 12px; text-align: center; margin-bottom: 20px; font-size: 15px;">
+            ⏳ Status bar: <span id="queue-count" style="color: var(--gold); font-weight: bold; font-size: 16px;">0</span> bestellingen in de wachtrij
+        </div>
+
         <div class="welcome-text">
             Lid: <span id="display-name"></span>
             <span class="logout-link" onclick="logout()">Naam wijzigen</span>

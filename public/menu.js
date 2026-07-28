@@ -1,3 +1,11 @@
+// Luister naar live updates van de wachtrij van de server
+socket.on('queue-update', (count) => {
+    const countSpan = document.getElementById('queue-count');
+    if (countSpan) {
+        countSpan.innerText = count;
+    }
+});
+
 const socket = io();
 let cart = [];
 
