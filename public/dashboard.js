@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .join('');
 
-        // Controleer of er een opmerking is meegegeven en maak een chique balkje aan
+        // Geef eventuele opmerkingen chique weer
         let noteHtml = '';
         if (data.note && data.note.trim() !== "") {
             noteHtml = `
@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
         }
 
-        // Maak de bestellingskaart aan inclusief het opmerkingenveld
+        // Maak de bestellingskaart aan
         const card = document.createElement('div');
         card.className = 'order-card';
         card.innerHTML = `
@@ -44,8 +44,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${noteHtml}
                 <span class="time-stamp">${data.time}</span>
             </div>
-            <button class="done-btn" onclick="this.parentElement.remove()">Klaar</button>
+            <button class="done-btn">Klaar</button>
         `;
+
+        // Koppel de klik-actie aan de 'Klaar' knop
+        const doneBtn = card.querySelector('.done-btn');
+        doneBtn.addEventListener('click', () => {
+            // 1. Stuur een seintje naar de server dat de bestelling klaar is (teller gaat omlaag!)
+            socket.emit('order-completed');
+            
+            // 2. Verwijder de kaart van jouw scherm
+            card.remove();
+        });
         
         // Zet de nieuwste bestelling direct bovenaan de lijst
         orderList.insertBefore(card, orderList.firstChild);
