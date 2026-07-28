@@ -1,11 +1,4 @@
-// Luister naar live updates van de wachtrij van de server
-socket.on('queue-update', (count) => {
-    const countSpan = document.getElementById('queue-count');
-    if (countSpan) {
-        countSpan.innerText = count;
-    }
-});
-
+// EERST de verbinding maken met de server
 const socket = io();
 let cart = [];
 
@@ -13,6 +6,14 @@ let cart = [];
 const selectedStrengths = {
     daiquiri: 'Sterk', ginfizz: 'Sterk', sunrise: 'Sterk', goldrush: 'Sterk', bluelagoon: 'Sterk', longisland: 'Sterk'
 };
+
+// NU pas luisteren naar de live updates van de wachtrij
+socket.on('queue-update', (count) => {
+    const countSpan = document.getElementById('queue-count');
+    if (countSpan) {
+        countSpan.innerText = count;
+    }
+});
 
 // Check bij openen of er al een account is opgeslagen
 document.addEventListener("DOMContentLoaded", () => {
@@ -49,9 +50,10 @@ function setStrength(itemId, level) {
     
     // Reset actieve klassen en zet de juiste aan
     for (let btn of buttons) {
-        btn.classList.remove('active');
         if (btn.innerText.trim() === level) {
             btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
         }
     }
 }
@@ -78,19 +80,16 @@ function sendOrder() {
     const currentUserName = localStorage.getItem('lounge_user_name');
     if(cart.length === 0) { alert('Kies eerst een drankje!'); return; }
     
-    // Haal de opmerking op uit het invoerveld
     const noteInput = document.getElementById('order-note').value;
     
     socket.emit('new-order', { 
         name: currentUserName, 
         drinks: cart, 
-        note: noteInput.trim(), // De opmerking wordt hier meegestuurd
+        note: noteInput.trim(),
         time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
     });
     
     alert('Bestelling succesvol verzonden!');
-    
-    // Maak het winkelmandje EN het opmerkingenveld weer leeg voor de volgende ronde
     cart = [];
     document.getElementById('order-note').value = "";
     updateCartUI();
