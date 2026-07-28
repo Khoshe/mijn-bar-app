@@ -70,13 +70,20 @@ function sendOrder() {
     const currentUserName = localStorage.getItem('lounge_user_name');
     if(cart.length === 0) { alert('Kies eerst een drankje!'); return; }
     
+    // Haal de opmerking op uit het invoerveld
+    const noteInput = document.getElementById('order-note').value;
+    
     socket.emit('new-order', { 
         name: currentUserName, 
         drinks: cart, 
+        note: noteInput.trim(), // De opmerking wordt hier meegestuurd
         time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
     });
     
     alert('Bestelling succesvol verzonden!');
+    
+    // Maak het winkelmandje EN het opmerkingenveld weer leeg voor de volgende ronde
     cart = [];
+    document.getElementById('order-note').value = "";
     updateCartUI();
 }

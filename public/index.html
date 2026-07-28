@@ -144,16 +144,22 @@
 
         </div>
 
-        <div style="height: 90px;"></div>
-        <div class="cart-bar">
-            <div>
-                <span style="font-size: 14px; color: #888;">Winkelmand:</span>
-                <div id="cart-preview" style="font-weight: bold; color: var(--gold); font-size: 14px; max-width: 200px;">Geen drankjes</div>
+                <div style="height: 140px;"></div>
+        <div class="cart-bar" style="flex-direction: column; gap: 10px; align-items: stretch;">
+            <!-- Het nieuwe opmerkingenveld -->
+            <input type="text" id="order-note" placeholder="Opmerking (bijv. geen ijs, extra citroen)..." style="width: auto; margin-bottom: 0; padding: 10px; background: #222; font-size: 14px;">
+            
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <span style="font-size: 14px; color: #888;">Winkelmand:</span>
+                    <div id="cart-preview" style="font-weight: bold; color: var(--gold); font-size: 14px; max-width: 200px;">Geen drankjes</div>
+                </div>
+                <button class="order-btn" onclick="sendOrder()">Bestellen</button>
             </div>
-            <button class="order-btn" onclick="sendOrder()">Bestellen</button>
         </div>
     </div>
 
+    <!-- Hier koppelen we het losse menu.js bestand -->
     <script src="menu.js"></script>
 </body>
 </html>
