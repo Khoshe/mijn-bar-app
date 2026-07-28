@@ -1,4 +1,3 @@
-// EERST de verbinding maken met de server
 const socket = io();
 let cart = [];
 
@@ -7,19 +6,43 @@ const selectedStrengths = {
     daiquiri: 'Sterk', ginfizz: 'Sterk', sunrise: 'Sterk', goldrush: 'Sterk', bluelagoon: 'Sterk', longisland: 'Sterk'
 };
 
-// NU pas luisteren naar de live updates van de wachtrij
+// Luister naar live updates van de wachtrij
 socket.on('queue-update', (count) => {
     const countSpan = document.getElementById('queue-count');
-    if (countSpan) {
-        countSpan.innerText = count;
+    if (countSpan) { countSpan.innerText = count; }
+});
+
+// NIEUW: Luister live of jouw drankje klaar is gemaakt door de bartender
+socket.on('drink-ready-notification', (clientName) => {
+    const currentUserName = localStorage.getItem('lounge_user_name');
+    
+    // Alleen als de bartender jóuw naam heeft afgevinkt
+    if (clientName === currentUserName) {
+        // Haal de opgeslagen geschiedenis op
+        let history = JSON.parse(localStorage.getItem('lounge_order_history')) || [];
+        
+        // Verander de status van alle 'In de wachtrij' drankjes naar 'Klaar! 🥃'
+        history.forEach(item => {
+            if (item.status === 'In de wachtrij') {
+                item.status = 'Klaar! 🥃';
+            }
+        });
+        
+        // Sla de geschiedenis weer op en ververs het lijstje op het scherm
+        localStorage.setItem('lounge_order_history', JSON.stringify(history));
+        renderHistoryList();
+        
+        // Geef een chique pop-up notificatie op het scherm van je vriend
+        alert("Je bestelling staat klaar bij de bar! 🎉");
     }
 });
 
-// Check bij openen of er al een account is opgeslagen
+// Check bij openen of er al een account en geschiedenis is opgeslagen
 document.addEventListener("DOMContentLoaded", () => {
     let currentUserName = localStorage.getItem('lounge_user_name');
     if (currentUserName) {
         showMenuScreen(currentUserName);
+        renderHistoryList(); // Laad de opgeslagen geschiedenis in bij openen
     }
 });
 
@@ -29,6 +52,7 @@ function registerAccount() {
     
     localStorage.setItem('lounge_user_name', nameInput.trim());
     showMenuScreen(nameInput.trim());
+    renderHistoryList();
 }
 
 function showMenuScreen(userName) {
@@ -39,16 +63,15 @@ function showMenuScreen(userName) {
 
 function logout() {
     localStorage.removeItem('lounge_user_name');
+    localStorage.removeItem('lounge_order_history'); // Wis ook geschiedenis bij uitloggen
     location.reload();
 }
 
-// Wisselen van sterkte via de knoppen
 function setStrength(itemId, level) {
     selectedStrengths[itemId] = level;
     const container = document.getElementById(`item-${itemId}`);
     const buttons = container.getElementsByClassName('strength-btn');
     
-    // Reset actieve klassen en zet de juiste aan
     for (let btn of buttons) {
         if (btn.innerText.trim() === level) {
             btn.classList.add('active');
@@ -82,9 +105,6 @@ function sendOrder() {
     
     const noteInput = document.getElementById('order-note').value;
     
-    // Maak een kopie van de winkelmand om in de geschiedenis te zetten
-    const orderedDrinks = [...cart];
-    
     socket.emit('new-order', { 
         name: currentUserName, 
         drinks: cart, 
@@ -92,33 +112,57 @@ function sendOrder() {
         time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
     });
     
+    // --- NIEUW: Sla de bestelling permanent op in de browser ---
+    let history = JSON.parse(localStorage.getItem('lounge_order_history')) || [];
+    
+    cart.forEach(item => {
+        history.push({
+            name: item.name,
+            strength: item.strength,
+            status: 'In de wachtrij'
+        });
+    });
+    
+    localStorage.setItem('lounge_order_history', JSON.stringify(history));
+    renderHistoryList();
+    // -------------------------------------------------------------
+    
     alert('Bestelling succesvol verzonden!');
-    
-    // --- NIEUW: Voeg toe aan de Bestelgeschiedenis op het scherm ---
-    const historyList = document.getElementById('history-list');
-    const noOrdersText = document.getElementById('no-orders-text');
-    
-    // Haal de "Je hebt nog geen drankjes besteld" tekst weg als die er nog staat
-    if (noOrdersText) { noOrdersText.remove(); }
-    
-    // Tel de drankjes voor een nette weergave in de geschiedenis
-    const counts = {};
-    orderedDrinks.forEach(item => {
-        const key = `${item.name} (${item.strength})`;
-        counts[key] = (counts[key] || 0) + 1;
-    });
-    
-    // Maak voor deze bestelling een nieuw lijst-item aan
-    Object.entries(counts).forEach(([label, qty]) => {
-        const li = document.createElement('li');
-        li.style.marginBottom = "5px";
-        li.innerHTML = `<strong>${qty}x</strong> ${label} — <span class="order-status-badge" style="color: #ff9f43; font-weight: bold;">⏳ In de wachtrij</span>`;
-        historyList.appendChild(li);
-    });
-    // ---------------------------------------------------------------
-    
-    // Maak het winkelmandje en opmerkingenveld weer leeg
     cart = [];
     document.getElementById('order-note').value = "";
     updateCartUI();
+}
+
+// NIEUW: Functie om de opgeslagen geschiedenis netjes op het scherm te tekenen
+function renderHistoryList() {
+    const historyList = document.getElementById('history-list');
+    if (!historyList) return;
+    
+    historyList.innerHTML = ''; // Maak de lijst eerst leeg
+    
+    const history = JSON.parse(localStorage.getItem('lounge_order_history')) || [];
+    
+    if (history.length === 0) {
+        historyList.innerHTML = `<li id="no-orders-text" style="list-style: none; margin-left: -20px; font-style: italic; color: #666;">Je hebt nog geen drankjes besteld.</li>`;
+        return;
+    }
+    
+    // Groepeer drankjes op naam + sterkte + status voor een strak overzicht
+    const counts = {};
+    history.forEach(item => {
+        const key = `${item.name} (${item.strength})|||${item.status}`;
+        counts[key] = (counts[key] || 0) + 1;
+    });
+    
+    Object.entries(counts).forEach(([key, qty]) => {
+        const [label, status] = key.split('|||');
+        const li = document.createElement('li');
+        li.style.marginBottom = "5px";
+        
+        // Geef een groene kleur aan 'Klaar!', en oranje aan 'In de wachtrij'
+        const statusColor = status.includes('Klaar') ? '#28a745' : '#ff9f43';
+        
+        li.innerHTML = `<strong>${qty}x</strong> ${label} — <span style="color: ${statusColor}; font-weight: bold;">${status}</span>`;
+        historyList.appendChild(li);
+    });
 }
