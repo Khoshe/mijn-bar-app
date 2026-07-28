@@ -82,6 +82,9 @@ function sendOrder() {
     
     const noteInput = document.getElementById('order-note').value;
     
+    // Maak een kopie van de winkelmand om in de geschiedenis te zetten
+    const orderedDrinks = [...cart];
+    
     socket.emit('new-order', { 
         name: currentUserName, 
         drinks: cart, 
@@ -90,6 +93,31 @@ function sendOrder() {
     });
     
     alert('Bestelling succesvol verzonden!');
+    
+    // --- NIEUW: Voeg toe aan de Bestelgeschiedenis op het scherm ---
+    const historyList = document.getElementById('history-list');
+    const noOrdersText = document.getElementById('no-orders-text');
+    
+    // Haal de "Je hebt nog geen drankjes besteld" tekst weg als die er nog staat
+    if (noOrdersText) { noOrdersText.remove(); }
+    
+    // Tel de drankjes voor een nette weergave in de geschiedenis
+    const counts = {};
+    orderedDrinks.forEach(item => {
+        const key = `${item.name} (${item.strength})`;
+        counts[key] = (counts[key] || 0) + 1;
+    });
+    
+    // Maak voor deze bestelling een nieuw lijst-item aan
+    Object.entries(counts).forEach(([label, qty]) => {
+        const li = document.createElement('li');
+        li.style.marginBottom = "5px";
+        li.innerHTML = `<strong>${qty}x</strong> ${label} — <span class="order-status-badge" style="color: #ff9f43; font-weight: bold;">⏳ In de wachtrij</span>`;
+        historyList.appendChild(li);
+    });
+    // ---------------------------------------------------------------
+    
+    // Maak het winkelmandje en opmerkingenveld weer leeg
     cart = [];
     document.getElementById('order-note').value = "";
     updateCartUI();
