@@ -24,13 +24,24 @@ document.addEventListener("DOMContentLoaded", () => {
             })
             .join('');
 
-        // Maak de bestellingskaart aan
+        // Controleer of er een opmerking is meegegeven en maak een chique balkje aan
+        let noteHtml = '';
+        if (data.note && data.note.trim() !== "") {
+            noteHtml = `
+                <div style="background: #2d2d3a; border-left: 3px solid #ff9f43; padding: 8px 12px; margin-top: 12px; border-radius: 4px; font-size: 14px; font-style: italic; color: #ff9f43;">
+                    📝 "${data.note}"
+                </div>
+            `;
+        }
+
+        // Maak de bestellingskaart aan inclusief het opmerkingenveld
         const card = document.createElement('div');
         card.className = 'order-card';
         card.innerHTML = `
             <div class="order-details">
                 <h3>Bestelling van: <span style="color: var(--gold); font-weight:bold;">${data.name}</span></h3>
                 <ul class="drink-list">${drinkItemsHtml}</ul>
+                ${noteHtml}
                 <span class="time-stamp">${data.time}</span>
             </div>
             <button class="done-btn" onclick="this.parentElement.remove()">Klaar</button>
