@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Lounge - Premium Ordering</title>
+    <title>The Lounge - Member Menu</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root { --gold: #d4af37; --dark-bg: #121212; --card-bg: #1e1e1e; --text: #e0e0e0; }
@@ -10,9 +10,18 @@
         .header { text-align: center; padding: 20px 0; border-bottom: 1px solid var(--gold); margin-bottom: 25px; }
         .header h1 { font-weight: 300; letter-spacing: 3px; color: var(--gold); margin: 0; font-size: 28px; }
         .header p { font-style: italic; font-size: 14px; color: #888; margin-top: 5px; }
-        .setup-fields { display: flex; gap: 10px; margin-bottom: 25px; }
-        input { flex: 1; padding: 14px; background: var(--card-bg); border: 1px solid #333; color: white; border-radius: 6px; font-size: 16px; outline: none; }
-        input:focus { border-color: var(--gold); }
+        
+        /* Account Scherm */
+        .auth-screen { text-align: center; max-width: 400px; margin: 50px auto; padding: 30px; background: var(--card-bg); border-radius: 8px; border: 1px solid #333; }
+        .auth-screen h3 { color: var(--gold); font-weight: 400; margin-top: 0; }
+        .auth-input { width: 90%; padding: 14px; background: #121212; border: 1px solid #333; color: white; border-radius: 6px; font-size: 16px; text-align: center; margin-bottom: 20px; }
+        .auth-btn { background: var(--gold); color: black; border: none; padding: 12px 30px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; width: 90%; }
+        
+        /* Menu Scherm (Standaard verborgen) */
+        .menu-screen { display: none; }
+        .welcome-text { font-style: italic; text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 16px; }
+        .logout-link { font-size: 12px; color: #ff2e63; text-decoration: underline; cursor: pointer; display: block; margin-top: 5px; }
+
         .category-title { color: var(--gold); font-size: 18px; letter-spacing: 1px; margin: 25px 0 15px 0; border-left: 3px solid var(--gold); padding-left: 10px; text-transform: uppercase; }
         .menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
         .menu-item { background: var(--card-bg); border-radius: 8px; overflow: hidden; display: flex; border: 1px solid #222; align-items: center; padding: 10px; }
@@ -20,9 +29,10 @@
         .menu-info { flex: 1; }
         .menu-info h4 { margin: 0 0 5px 0; font-weight: 400; font-size: 18px; }
         .menu-info p { margin: 0; font-size: 12px; color: #888; font-style: italic; }
-        .add-btn { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .add-btn:hover { background: var(--gold); color: black; }
-        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid var(--gold); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -5px 15px rgba(0,0,0,0.5); }
+        .add-btn { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        
+        /* Winkelmand */
+        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid var(--gold); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
         .order-btn { background: var(--gold); color: black; border: none; padding: 12px 25px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
@@ -33,58 +43,80 @@
         <p>Fine Drinks & Exquisite Company</p>
     </div>
 
-    <div class="setup-fields">
-        <input type="text" id="name" placeholder="Uw Naam...">
-        <input type="text" id="table" placeholder="Tafelnr...">
+    <!-- SCHERM 1: ACCOUNT MAKEN (EERSTE KEER) -->
+    <div id="auth-panel" class="auth-screen">
+        <h3>Welkom bij The Lounge</h3>
+        <p style="font-size: 14px; color: #888; margin-bottom: 20px;">Maak eenmalig een account aan met uw naam om te kunnen bestellen.</p>
+        <input type="text" id="username-input" class="auth-input" placeholder="Uw volledige naam...">
+        <button class="auth-btn" onclick="registerAccount()">Account Aanmaken</button>
     </div>
 
-    <!-- CATEGORIE: COCKTAILS -->
-    <div class="category-title">Signature Cocktails</div>
-    <div class="menu-grid">
-        <div class="menu-item">
-            <img class="menu-img" src="https://unsplash.com" alt="Gin">
-            <div class="menu-info">
-                <h4>Copper Gin & Tonic</h4>
-                <p>Premium gin, aromatic tonic, steranijs & sinaasappel.</p>
-            </div>
-            <button class="add-btn" onclick="addToCart('Copper Gin & Tonic')">+</button>
+    <!-- SCHERM 2: DE MENUKAART -->
+    <div id="menu-panel" class="menu-screen">
+        <div class="welcome-text">
+            Lid: <span id="display-name"></span>
+            <span class="logout-link" onclick="logout()">Naam wijzigen</span>
         </div>
-        <div class="menu-item">
-            <img class="menu-img" src="https://unsplash.com" alt="Mojito">
-            <div class="menu-info">
-                <h4>Cuban Mojito</h4>
-                <p>Verse munt, rijpe limoen, premium witte rum & bruiswater.</p>
-            </div>
-            <button class="add-btn" onclick="addToCart('Cuban Mojito')">+</button>
-        </div>
-    </div>
 
-    <!-- CATEGORIE: WIJNEN -->
-    <div class="category-title">Wines & Champagne</div>
-    <div class="menu-grid">
-        <div class="menu-item">
-            <img class="menu-img" src="https://unsplash.com" alt="Wijn">
-            <div class="menu-info">
-                <h4>Chardonnay Réserve</h4>
-                <p>Volle witte wijn met tonen van vanille en eikenhout.</p>
+        <div class="category-title">Signature Cocktails</div>
+        <div class="menu-grid">
+            <div class="menu-item">
+                <img class="menu-img" src="https://unsplash.com">
+                <div class="menu-info">
+                    <h4>Copper Gin & Tonic</h4>
+                    <p>Premium gin, aromatic tonic, steranijs & sinaasappel.</p>
+                </div>
+                <button class="add-btn" onclick="addToCart('Copper Gin & Tonic')">+</button>
             </div>
-            <button class="add-btn" onclick="addToCart('Chardonnay Réserve')">+</button>
+            <div class="menu-item">
+                <img class="menu-img" src="https://unsplash.com">
+                <div class="menu-info">
+                    <h4>Cuban Mojito</h4>
+                    <p>Verse munt, rijpe limoen, premium witte rum & bruiswater.</p>
+                </div>
+                <button class="add-btn" onclick="addToCart('Cuban Mojito')">+</button>
+            </div>
         </div>
-    </div>
 
-    <!-- WINKELMANDJE BALK -->
-    <div style="height: 80px;"></div> <!-- Spacing voor de fixed bar -->
-    <div class="cart-bar">
-        <div>
-            <span style="font-size: 14px; color: #888;">Geselecteerd:</span>
-            <div id="cart-preview" style="font-weight: bold; color: var(--gold);">Geen drankjes</div>
+        <div style="height: 80px;"></div>
+        <div class="cart-bar">
+            <div>
+                <span style="font-size: 14px; color: #888;">Winkelmand:</span>
+                <div id="cart-preview" style="font-weight: bold; color: var(--gold);">Geen drankjes</div>
+            </div>
+            <button class="order-btn" onclick="sendOrder()">Bestellen</button>
         </div>
-        <button class="order-btn" onclick="sendOrder()">Bestellen</button>
     </div>
 
     <script>
         const socket = io();
         let cart = [];
+        let currentUserName = localStorage.getItem('lounge_user_name');
+
+        // Check bij openen of er al een account is opgeslagen
+        if (currentUserName) {
+            showMenuScreen();
+        }
+
+        function registerAccount() {
+            const nameInput = document.getElementById('username-input').value;
+            if (!nameInput.trim()) { alert('Vul aanzien een naam in.'); return; }
+            
+            localStorage.setItem('lounge_user_name', nameInput.trim());
+            currentUserName = nameInput.trim();
+            showMenuScreen();
+        }
+
+        function showMenuScreen() {
+            document.getElementById('auth-panel').style.display = 'none';
+            document.getElementById('menu-panel').style.display = 'block';
+            document.getElementById('display-name').innerText = currentUserName;
+        }
+
+        function logout() {
+            localStorage.removeItem('lounge_user_name');
+            location.reload();
+        }
 
         function addToCart(drink) {
             cart.push(drink);
@@ -93,32 +125,22 @@
 
         function updateCartUI() {
             const preview = document.getElementById('cart-preview');
-            if (cart.length === 0) {
-                preview.innerText = "Geen drankjes";
-                return;
-            }
-            // Groepeer drankjes (bijv: 2x Cuban Mojito)
+            if (cart.length === 0) { preview.innerText = "Geen drankjes"; return; }
             const counts = {};
             cart.forEach(x => counts[x] = (counts[x] || 0) + 1);
             preview.innerText = Object.entries(counts).map(([name, qty]) => `${qty}x ${name}`).join(', ');
         }
 
         function sendOrder() {
-            const userName = document.getElementById('name').value;
-            const tableNr = document.getElementById('table').value;
-            
-            if(!userName.trim()) { alert('Vul aanzien uw naam in.'); return; }
-            if(!tableNr.trim()) { alert('Vul aanzien uw tafelnummer in.'); return; }
             if(cart.length === 0) { alert('Kies eerst een drankje!'); return; }
             
             socket.emit('new-order', { 
-                name: userName, 
-                table: tableNr,
+                name: currentUserName, 
                 drinks: cart, 
                 time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
             });
             
-            alert('Uw bestelling is doorgegeven aan de bartender.');
+            alert('Bestelling succesvol verzonden!');
             cart = [];
             updateCartUI();
         }
