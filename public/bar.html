@@ -11,45 +11,22 @@
         .order-container { display: grid; grid-template-columns: 1fr; gap: 15px; }
         .order-card { background: var(--card); border-radius: 8px; border: 1px solid #2d2d3a; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
         .order-details h3 { margin: 0 0 5px 0; color: #fff; font-size: 22px; font-weight: 400; letter-spacing: 0.5px; }
-        .drink-list { margin: 10px 0 0 0; padding-left: 20px; color: #b3b3cc; font-size: 16px; }
+        .drink-list { margin: 10px 0 0 0; padding-left: 20px; color: #b3b3cc; font-size: 17px; line-height: 1.6; }
+        .badge { font-size: 12px; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-left: 5px; text-transform: uppercase; }
+        .badge.medium { background: #d4af37; color: black; }
+        .badge.sterk { background: #ff2e63; color: white; }
         .time-stamp { color: #555; font-size: 12px; margin-top: 8px; display: block; }
         .done-btn { background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px; }
     </style>
 </head>
 <body>
 
-    <h2>📥 Live Bestellingen</h2>
+    <h2>📥 Live Bestellingen Overview</h2>
     <div class="order-container" id="order-list"></div>
 
     <audio id="notification-sound" src="https://mixkit.co" preload="auto"></audio>
 
-    <script>
-        const socket = io();
-        const orderList = document.getElementById('order-list');
-        const sound = document.getElementById('notification-sound');
-
-        socket.on('bar-receive-order', (data) => {
-            sound.play().catch(e => console.log("Muted"));
-
-            const counts = {};
-            data.drinks.forEach(x => counts[x] = (counts[x] || 0) + 1);
-            const drinkItemsHtml = Object.entries(counts)
-                .map(([name, qty]) => `<li><strong>${qty}x</strong> ${name}</li>`)
-                .join('');
-
-            const card = document.createElement('div');
-            card.className = 'order-card';
-            card.innerHTML = `
-                <div class="order-details">
-                    <h3>Bestelling van: <span style="color: var(--gold); font-weight:bold;">${data.name}</span></h3>
-                    <ul class="drink-list">${drinkItemsHtml}</ul>
-                    <span class="time-stamp">${data.time}</span>
-                </div>
-                <button class="done-btn" onclick="this.parentElement.remove()">Klaar</button>
-            `;
-            
-            orderList.insertBefore(card, orderList.firstChild);
-        });
-    </script>
+    <!-- Hier koppelen we het losse dashboard.js bestand -->
+    <script src="dashboard.js"></script>
 </body>
 </html>

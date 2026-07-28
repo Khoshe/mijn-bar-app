@@ -11,28 +11,31 @@
         .header h1 { font-weight: 300; letter-spacing: 3px; color: var(--gold); margin: 0; font-size: 28px; }
         .header p { font-style: italic; font-size: 14px; color: #888; margin-top: 5px; }
         
-        /* Account Scherm */
         .auth-screen { text-align: center; max-width: 400px; margin: 50px auto; padding: 30px; background: var(--card-bg); border-radius: 8px; border: 1px solid #333; }
         .auth-screen h3 { color: var(--gold); font-weight: 400; margin-top: 0; }
         .auth-input { width: 90%; padding: 14px; background: #121212; border: 1px solid #333; color: white; border-radius: 6px; font-size: 16px; text-align: center; margin-bottom: 20px; }
         .auth-btn { background: var(--gold); color: black; border: none; padding: 12px 30px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; width: 90%; }
         
-        /* Menu Scherm (Standaard verborgen) */
         .menu-screen { display: none; }
         .welcome-text { font-style: italic; text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 16px; }
         .logout-link { font-size: 12px; color: #ff2e63; text-decoration: underline; cursor: pointer; display: block; margin-top: 5px; }
 
         .category-title { color: var(--gold); font-size: 18px; letter-spacing: 1px; margin: 25px 0 15px 0; border-left: 3px solid var(--gold); padding-left: 10px; text-transform: uppercase; }
         .menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        .menu-item { background: var(--card-bg); border-radius: 8px; overflow: hidden; display: flex; border: 1px solid #222; align-items: center; padding: 10px; }
-        .menu-img { width: 70px; height: 70px; object-fit: cover; border-radius: 6px; margin-right: 15px; }
+        .menu-item { background: var(--card-bg); border-radius: 8px; overflow: hidden; display: flex; border: 1px solid #222; align-items: center; padding: 12px; }
+        .menu-img { width: 75px; height: 75px; object-fit: cover; border-radius: 6px; margin-right: 15px; }
         .menu-info { flex: 1; }
-        .menu-info h4 { margin: 0 0 5px 0; font-weight: 400; font-size: 18px; }
-        .menu-info p { margin: 0; font-size: 12px; color: #888; font-style: italic; }
-        .add-btn { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 8px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .menu-info h4 { margin: 0 0 5px 0; font-weight: 400; font-size: 18px; color: #fff; }
+        .menu-info p { margin: 0 0 8px 0; font-size: 12px; color: #999; font-style: italic; line-height: 1.4; }
         
-        /* Winkelmand */
-        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid var(--gold); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .strength-selector { display: inline-flex; background: #121212; padding: 3px; border-radius: 4px; border: 1px solid #333; margin-top: 5px; }
+        .strength-btn { background: transparent; border: none; color: #666; padding: 5px 10px; font-size: 11px; cursor: pointer; border-radius: 3px; text-transform: uppercase; font-weight: bold; }
+        .strength-btn.active { background: var(--gold); color: black; }
+
+        .add-btn { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 10px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 18px; }
+        .add-btn:hover { background: var(--gold); color: black; }
+        
+        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid var(--gold); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
         .order-btn { background: var(--gold); color: black; border: none; padding: 12px 25px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
@@ -43,7 +46,7 @@
         <p>Fine Drinks & Exquisite Company</p>
     </div>
 
-    <!-- SCHERM 1: ACCOUNT MAKEN (EERSTE KEER) -->
+    <!-- SCHERM 1: LOGIN -->
     <div id="auth-panel" class="auth-screen">
         <h3>Welkom bij The Lounge</h3>
         <p style="font-size: 14px; color: #888; margin-bottom: 20px;">Maak eenmalig een account aan met uw naam om te kunnen bestellen.</p>
@@ -51,7 +54,7 @@
         <button class="auth-btn" onclick="registerAccount()">Account Aanmaken</button>
     </div>
 
-    <!-- SCHERM 2: DE MENUKAART -->
+    <!-- SCHERM 2: COCKTAILKAART -->
     <div id="menu-panel" class="menu-screen">
         <div class="welcome-text">
             Lid: <span id="display-name"></span>
@@ -60,90 +63,95 @@
 
         <div class="category-title">Signature Cocktails</div>
         <div class="menu-grid">
-            <div class="menu-item">
+            
+            <div class="menu-item" id="item-daiquiri">
                 <img class="menu-img" src="https://unsplash.com">
                 <div class="menu-info">
-                    <h4>Copper Gin & Tonic</h4>
-                    <p>Premium gin, aromatic tonic, steranijs & sinaasappel.</p>
+                    <h4>Strawberry Daiquiri</h4>
+                    <p>Witte rum blend, frisse limoensap en zoete, rijpe aardbeien. Gecrusht met ijs.</p>
+                    <div class="strength-selector">
+                        <button class="strength-btn" onclick="setStrength('daiquiri', 'Medium')">Medium</button>
+                        <button class="strength-btn active" onclick="setStrength('daiquiri', 'Sterk')">Sterk</button>
+                    </div>
                 </div>
-                <button class="add-btn" onclick="addToCart('Copper Gin & Tonic')">+</button>
+                <button class="add-btn" onclick="addToCart('Strawberry Daiquiri', 'daiquiri')">+</button>
             </div>
-            <div class="menu-item">
+
+            <div class="menu-item" id="item-ginfizz">
                 <img class="menu-img" src="https://unsplash.com">
                 <div class="menu-info">
-                    <h4>Cuban Mojito</h4>
-                    <p>Verse munt, rijpe limoen, premium witte rum & bruiswater.</p>
+                    <h4>Blood Orange Gin Fizz</h4>
+                    <p>Botanische gin gemixt met bloedsinaasappel, een kneepje citroen en bruiswater.</p>
+                    <div class="strength-selector">
+                        <button class="strength-btn" onclick="setStrength('ginfizz', 'Medium')">Medium</button>
+                        <button class="strength-btn active" onclick="setStrength('ginfizz', 'Sterk')">Sterk</button>
+                    </div>
                 </div>
-                <button class="add-btn" onclick="addToCart('Cuban Mojito')">+</button>
+                <button class="add-btn" onclick="addToCart('Blood Orange Gin Fizz', 'ginfizz')">+</button>
             </div>
+
+            <div class="menu-item" id="item-sunrise">
+                <img class="menu-img" src="https://unsplash.com">
+                <div class="menu-info">
+                    <h4>Tequila Sunrise</h4>
+                    <p>Premium tequila en frisse sinaasappelsap, afgetopt met een zinkende laag zoete grenadine.</p>
+                    <div class="strength-selector">
+                        <button class="strength-btn" onclick="setStrength('sunrise', 'Medium')">Medium</button>
+                        <button class="strength-btn active" onclick="setStrength('sunrise', 'Sterk')">Sterk</button>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="addToCart('Tequila Sunrise', 'sunrise')">+</button>
+            </div>
+
+            <div class="menu-item" id="item-goldrush">
+                <img class="menu-img" src="https://unsplash.com">
+                <div class="menu-info">
+                    <h4>Irish Gold Rush</h4>
+                    <p>Zachte Ierse whiskey gecombineerd met frisse honing-citroensiroop en ginger ale.</p>
+                    <div class="strength-selector">
+                        <button class="strength-btn" onclick="setStrength('goldrush', 'Medium')">Medium</button>
+                        <button class="strength-btn active" onclick="setStrength('goldrush', 'Sterk')">Sterk</button>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="addToCart('Irish Gold Rush', 'goldrush')">+</button>
+            </div>
+
+            <div class="menu-item" id="item-bluelagoon">
+                <img class="menu-img" src="https://unsplash.com">
+                <div class="menu-info">
+                    <h4>Blue Lagoon</h4>
+                    <p>Heldere wodka met Blue Curaçao en verfrissende sprite voor die iconische tropische kleur.</p>
+                    <div class="strength-selector">
+                        <button class="strength-btn" onclick="setStrength('bluelagoon', 'Medium')">Medium</button>
+                        <button class="strength-btn active" onclick="setStrength('bluelagoon', 'Sterk')">Sterk</button>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="addToCart('Blue Lagoon', 'bluelagoon')">+</button>
+            </div>
+
+            <div class="menu-item" id="item-longisland">
+                <img class="menu-img" src="https://unsplash.com">
+                <div class="menu-info">
+                    <h4>Long Island Iced Tea</h4>
+                    <p>De ultieme klassieker: wodka, rum, tequila, gin en triple sec, afgetopt met cola.</p>
+                    <div class="strength-selector">
+                        <button class="strength-btn" onclick="setStrength('longisland', 'Medium')">Medium</button>
+                        <button class="strength-btn active" onclick="setStrength('longisland', 'Sterk')">Sterk</button>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="addToCart('Long Island Iced Tea', 'longisland')">+</button>
+            </div>
+
         </div>
 
-        <div style="height: 80px;"></div>
+        <div style="height: 90px;"></div>
         <div class="cart-bar">
             <div>
                 <span style="font-size: 14px; color: #888;">Winkelmand:</span>
-                <div id="cart-preview" style="font-weight: bold; color: var(--gold);">Geen drankjes</div>
+                <div id="cart-preview" style="font-weight: bold; color: var(--gold); font-size: 14px; max-width: 200px;">Geen drankjes</div>
             </div>
             <button class="order-btn" onclick="sendOrder()">Bestellen</button>
         </div>
     </div>
 
-    <script>
-        const socket = io();
-        let cart = [];
-        let currentUserName = localStorage.getItem('lounge_user_name');
-
-        // Check bij openen of er al een account is opgeslagen
-        if (currentUserName) {
-            showMenuScreen();
-        }
-
-        function registerAccount() {
-            const nameInput = document.getElementById('username-input').value;
-            if (!nameInput.trim()) { alert('Vul aanzien een naam in.'); return; }
-            
-            localStorage.setItem('lounge_user_name', nameInput.trim());
-            currentUserName = nameInput.trim();
-            showMenuScreen();
-        }
-
-        function showMenuScreen() {
-            document.getElementById('auth-panel').style.display = 'none';
-            document.getElementById('menu-panel').style.display = 'block';
-            document.getElementById('display-name').innerText = currentUserName;
-        }
-
-        function logout() {
-            localStorage.removeItem('lounge_user_name');
-            location.reload();
-        }
-
-        function addToCart(drink) {
-            cart.push(drink);
-            updateCartUI();
-        }
-
-        function updateCartUI() {
-            const preview = document.getElementById('cart-preview');
-            if (cart.length === 0) { preview.innerText = "Geen drankjes"; return; }
-            const counts = {};
-            cart.forEach(x => counts[x] = (counts[x] || 0) + 1);
-            preview.innerText = Object.entries(counts).map(([name, qty]) => `${qty}x ${name}`).join(', ');
-        }
-
-        function sendOrder() {
-            if(cart.length === 0) { alert('Kies eerst een drankje!'); return; }
-            
-            socket.emit('new-order', { 
-                name: currentUserName, 
-                drinks: cart, 
-                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) 
-            });
-            
-            alert('Bestelling succesvol verzonden!');
-            cart = [];
-            updateCartUI();
-        }
-    </script>
-</body>
-</html>
+    <!-- Hier koppelen we het losse menu.js bestand -->
