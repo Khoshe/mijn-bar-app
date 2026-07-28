@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bar Dashboard</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #222831; color: #eceff1; padding: 20px; }
+        h2 { border-bottom: 2px solid #00adb5; padding-bottom: 10px; }
+        .order-card { background: #393e46; padding: 15px; margin: 10px 0; border-left: 6px solid #00adb5; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+        button { background: #ff2e63; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #e21b4d; }
+    </style>
+</head>
+<body>
+    <h2>📥 Live Bestellingen Dashboard</h2>
+    <div id="order-list">
+        <!-- Hier komen de bestellingen live binnen -->
+    </div>
+
+    <!-- Geluidssignaal bij nieuwe bestelling -->
+    <audio id="notification-sound" src="https://mixkit.co" preload="auto"></audio>
+
+    <script>
+        const socket = io();
+        const orderList = document.getElementById('order-list');
+        const sound = document.getElementById('notification-sound');
+
+        socket.on('bar-receive-order', (data) => {
+            // Speel geluid af
+            sound.play().catch(e => console.log("Geluid gedempt tot eerste klik op het scherm"));
+
+            // Maak een nieuwe kaart aan voor de bestelling
+            const card = document.createElement('div');
+            card.className = 'order-card';
+            card.innerHTML = `
+                <div>
+                    <span style="font-size: 1.2em; font-weight: bold;">${data.name}</span> <br>
+                    <span style="color:#00adb5; font-size: 1.1em;">${data.drink}</span> <br>
+                    <small style="color:#888">${data.time}</small>
+                </div>
+                <button onclick="this.parentElement.remove()">Klaar</button>
+            `;
+            
+            // Zet de nieuwste bestelling bovenaan de lijst
+            orderList.insertBefore(card, orderList.firstChild);
+        });
+    </script>
+</body>
+</html>
