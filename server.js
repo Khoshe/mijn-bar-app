@@ -6,7 +6,7 @@ const io = require('socket.io')(http);
 app.use(express.static('public'));
 
 // Jouw Google Web-App URL staat hier permanent ingebouwd
-const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxizF1chLZuYrX_gwS9N12lK5GcP8YU0dKHGGbGATW160wLcyWnvo7B3PiIgApKVFjkaA/exec";
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbwO2pvYCy-jJao_526bvZFJcuyt3FEBOlTJ-PS50KoMF2RKXheCHiHsAI0jISV3FWi8/exec";
 
 let activeOrders = [];
 let memberTotals = {};
