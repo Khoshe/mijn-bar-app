@@ -5,13 +5,14 @@ const io = require('socket.io')(http);
 
 app.use(express.static('public'));
 
+// PLAK HIERONDER JOUW GOOGLE WEB-APP URL TUSSEN DE QUOTES:
+const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1BSHVwOMzxBT_6pgO7jQL1AXXRzo2oMfSZkNvO5TSFMk/edit?pli=1&gid=0#gid=0";
+
 let activeOrders = [];
-// Houdt de geschiedenis per persoon bij: { "Naam": { "Drankje [Sterkte]": Aantal } }
 let memberTotals = {};
 
 io.on('connection', (socket) => {
     socket.emit('queue', activeOrders.length);
-    // Stuur direct de complete turflijst mee bij het opstarten van het dashboard
     socket.emit('init-totals', memberTotals);
 
     socket.on('request-existing-orders', () => {
@@ -33,18 +34,24 @@ io.on('connection', (socket) => {
         if (completedOrder) {
             const memberName = completedOrder.name.trim();
             
-            // Als dit lid nog niet in de lijst staat, maak hem aan
             if (!memberTotals[memberName]) {
                 memberTotals[memberName] = {};
             }
 
-            // Loop door de drankjes en tel ze specifiek op voor dit lid, inclusief sterkte
             completedOrder.drinks.forEach(drink => {
                 const drinkKey = `${drink.name} [${drink.strength}]`;
                 memberTotals[memberName][drinkKey] = (memberTotals[memberName][drinkKey] || 0) + 1;
+
+                // NIEUW: Stuur dit drankje live en permanent naar Google Sheets
+                if (GOOGLE_SHEET_URL !== "https://docs.google.com/spreadsheets/d/1BSHVwOMzxBT_6pgO7jQL1AXXRzo2oMfSZkNvO5TSFMk/edit?pli=1&gid=0#gid=0") {
+                    fetch(GOOGLE_SHEET_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: memberName, drink: drinkKey })
+                    }).catch(err => console.log("Google Sheet Error: ", err));
+                }
             });
             
-            // Stuur de vernieuwde turflijst live naar het dashboard
             io.emit('update-totals', memberTotals);
         }
 
@@ -54,4 +61,4 @@ io.on('connection', (socket) => {
     });
 });
 
-http.listen(process.env.PORT || 3000, () => console.log('Bar Live met Turflijst!'));
+http.listen(process.env.PORT || 3000, () => console.log('Bar Live met Excel Geheugen!'));
