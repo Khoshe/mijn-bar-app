@@ -42,19 +42,18 @@ io.on('connection', (socket) => {
                 const drinkKey = `${drink.name} [${drink.strength}]`;
                 memberTotals[memberName][drinkKey] = (memberTotals[memberName][drinkKey] || 0) + 1;
 
-                // NIEUW: Stuur dit drankje live en permanent naar Google Sheets
-                // AANPASSING: De check controleert nu of je de URL hebt ingevuld in plaats van hem te blokkeren
-            if (GOOGLE_SHEET_URL !== "https://script.google.com/macros/s/AKfycbxizF1chLZuYrX_gwS9N12lK5GcP8YU0dKHGGbGATW160wLcyWnvo7B3PiIgApKVFjkaA/exec") {
-              fetch(GOOGLE_SHEET_URL, {
-              method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ name: memberName, drink: drinkKey })
-                      }).catch(err => console.log("Google Sheet Error: ", err));
-}
-
+                // GEFIXT: De check controleert nu simpelweg of de string niet leeg is
+                if (GOOGLE_SHEET_URL !== "") {
+                    fetch(GOOGLE_SHEET_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: memberName, drink: drinkKey })
+                    }).catch(err => console.log("Google Sheet Error: ", err));
+                }
+            }); // GEFIXT: Sluiting van completedOrder.drinks.forEach
             
             io.emit('update-totals', memberTotals);
-        }
+        } // GEFIXT: Sluiting van if (completedOrder)
 
         activeOrders = activeOrders.filter(order => order.id !== orderId);
         io.emit('queue', activeOrders.length);
