@@ -43,14 +43,15 @@ io.on('connection', (socket) => {
                 memberTotals[memberName][drinkKey] = (memberTotals[memberName][drinkKey] || 0) + 1;
 
                 // NIEUW: Stuur dit drankje live en permanent naar Google Sheets
-                if (GOOGLE_SHEET_URL !== "https://script.google.com/macros/s/AKfycbxizF1chLZuYrX_gwS9N12lK5GcP8YU0dKHGGbGATW160wLcyWnvo7B3PiIgApKVFjkaA/exec") {
-                    fetch(GOOGLE_SHEET_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name: memberName, drink: drinkKey })
-                    }).catch(err => console.log("Google Sheet Error: ", err));
-                }
-            });
+                // AANPASSING: De check controleert nu of je de URL hebt ingevuld in plaats van hem te blokkeren
+            if (GOOGLE_SHEET_URL !== "https://script.google.com/macros/s/AKfycbxizF1chLZuYrX_gwS9N12lK5GcP8YU0dKHGGbGATW160wLcyWnvo7B3PiIgApKVFjkaA/exec") {
+              fetch(GOOGLE_SHEET_URL, {
+              method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ name: memberName, drink: drinkKey })
+                      }).catch(err => console.log("Google Sheet Error: ", err));
+}
+
             
             io.emit('update-totals', memberTotals);
         }
