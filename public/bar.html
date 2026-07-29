@@ -19,9 +19,15 @@
     <script>
         const socket = io();
         
+        // NIEUW: Zodra het dashboard geladen is, vragen we direct om de gemiste bestellingen
+        socket.emit('request-existing-orders');
+        
         socket.on('queue', (c) => document.getElementById('q-num').innerText = c);
 
         socket.on('bar-order', (data) => {
+            // Voorkom dat we per ongeluk dubbele kaarten tekenen als de pagina handmatig ververst wordt
+            if (document.getElementById(data.id)) return;
+
             document.getElementById('sound').play().catch(() => {});
 
             const counts = {};
@@ -32,19 +38,22 @@
 
             const card = document.createElement('div');
             card.className = 'order';
+            card.id = data.id; // Geef de kaart het unieke ID van de server
             card.innerHTML = `
                 <div>
                     <h3 style="margin:0;">${data.name}</h3>
                     <ul style="margin:5px 0; padding-left:20px;">${listHtml}</ul>
                     ${noteHtml}
                 </div>
-                <button class="btn-ready" onclick="finish('${data.name}', this)">Klaar</button>
+                <!-- VERANDERD: We sturen nu het unieke ID mee naar de finish functie -->
+                <button class="btn-ready" onclick="finish('${data.id}', '${data.name}', this)">Klaar</button>
             `;
             document.getElementById('orders-container').insertBefore(card, document.getElementById('orders-container').firstChild);
         });
 
-        function finish(name, btn) {
-            socket.emit('done', name);
+        // VERANDERD: Stuurt nu het orderId mee zodat de server exact weet welke gewist moet worden
+        function finish(orderId, name, btn) {
+            socket.emit('done', orderId, name);
             btn.parentElement.remove();
         }
     </script>
