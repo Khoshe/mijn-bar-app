@@ -5,11 +5,12 @@ const io = require('socket.io')(http);
 
 app.use(express.static('public'));
 
+// Jouw actuele Google Web-App URL
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbwO2pvYCy-jJao_526bvZFJcuyt3FEBOlTJ-PS50KoMF2RKXheCHiHsAI0jISV3FWi8/exec";
 
 let activeOrders = [];
 let memberTotals = {};
-let completedOrders = []; // NIEUW: Houdt tijdelijk namen bij die klaar zijn bij de bar
+let completedOrders = []; // Houdt tijdelijk namen bij die klaar zijn bij de bar
 
 const drinks = [
     {id:"daiquiri", n:"Strawberry Daiquiri"},
@@ -35,7 +36,7 @@ function loadDataFromSheets() {
             io.emit('queue', activeOrders.length);
             io.emit('init-totals', memberTotals);
             io.emit('stock-update', stockStatus);
-            io.emit('status-update', { active: activeOrders, completed: completedOrders }); // NIEUW
+            io.emit('status-update', { active: activeOrders, completed: completedOrders });
         })
         .catch(err => console.log("Google Sheet leeg of nog geen data aanwezig: ", err));
 }
@@ -53,7 +54,7 @@ io.on('connection', (socket) => {
     socket.emit('queue', activeOrders.length);
     socket.emit('init-totals', memberTotals);
     socket.emit('stock-update', stockStatus);
-    socket.emit('status-update', { active: activeOrders, completed: completedOrders }); // NIEUW: Geef direct status bij laden page
+    socket.emit('status-update', { active: activeOrders, completed: completedOrders }); // Geef direct status bij laden page
 
     socket.on('request-existing-orders', () => {
         activeOrders.forEach(order => { socket.emit('bar-order', order); });
@@ -79,7 +80,7 @@ io.on('connection', (socket) => {
         activeOrders.push(data);
         io.emit('bar-order', data);
         io.emit('queue', activeOrders.length);
-        io.emit('status-update', { active: activeOrders, completed: completedOrders }); // NIEUW: Update statusscherm
+        io.emit('status-update', { active: activeOrders, completed: completedOrders }); // Update statusscherm
         saveDataToSheets();
     });
 
@@ -96,7 +97,6 @@ io.on('connection', (socket) => {
             });
             io.emit('update-totals', memberTotals);
 
-            // NIEUW: Voeg naam toe aan 'Klaar bij de bar' lijst
             const cleanName = memberName;
             if (!completedOrders.includes(cleanName)) {
                 completedOrders.push(cleanName);
@@ -112,12 +112,27 @@ io.on('connection', (socket) => {
         activeOrders = activeOrders.filter(order => order.id !== orderId);
         io.emit('queue', activeOrders.length);
         io.emit('ready', name.trim().toLowerCase());
-        io.emit('status-update', { active: activeOrders, completed: completedOrders }); // NIEUW: Update statusscherm
+        io.emit('status-update', { active: activeOrders, completed: completedOrders }); // Update statusscherm
         saveDataToSheets();
+    });
+
+    // NIEUW: Luister naar het dashboard wanneer een barman een foute order handmatig wist
+    socket.on('cancel-order', (orderId, name) => {
+        // Filter de bestelling uit de actieve wachtrij (zonder de totalen aan te passen)
+        activeOrders = activeOrders.filter(order => order.id !== orderId);
+        
+        // Update direct alle schermen en het live statusscherm
+        io.emit('queue', activeOrders.length);
+        io.emit('status-update', { active: activeOrders, completed: completedOrders });
+        
+        // Stuur een melding naar het scherm van de specifieke klant
+        io.emit('ready', `GEANNULEERD: De bestelling van ${name.trim()} is door de bar verwijderd.`);
+        
+        saveDataToSheets(); // Sla de opgeschoonde wachtrij direct op in Google Sheets (Cel Z1)
     });
 });
 
 http.listen(process.env.PORT || 3000, () => {
-    console.log('Bar live en stabiel met live statusscherm support!');
+    console.log('Bar live en stabiel met live statusscherm en verwijder support!');
     loadDataFromSheets();
 });
