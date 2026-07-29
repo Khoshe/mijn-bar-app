@@ -11,14 +11,35 @@ const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxizF1chLZuYrX
 let activeOrders = [];
 let memberTotals = {};
 
+// NIEUW: Object om de voorraadstatus van de cocktails live bij te houden (standaard allemaal true)
+let stockStatus = {
+    daiquiri: true,
+    ginfizz: true,
+    sunrise: true,
+    goldrush: true,
+    bluelagoon: true,
+    longisland: true
+};
+
 io.on('connection', (socket) => {
     socket.emit('queue', activeOrders.length);
     socket.emit('init-totals', memberTotals);
+    
+    // NIEUW: Stuur direct de actuele voorraadstatus naar elk scherm dat verbinding maakt
+    socket.emit('stock-update', stockStatus);
 
     socket.on('request-existing-orders', () => {
         activeOrders.forEach(order => {
             socket.emit('bar-order', order);
         });
+    });
+
+    // NIEUW: Luister naar het dashboard wanneer de bar een cocktail in- of uitschakelt
+    socket.on('toggle-drink', (drinkId) => {
+        if (stockStatus[drinkId] !== undefined) {
+            stockStatus[drinkId] = !stockStatus[drinkId]; // Draai status om (true <-> false)
+            io.emit('stock-update', stockStatus); // Push live naar álle klanten en dashboards
+        }
     });
 
     socket.on('order', (data) => {
