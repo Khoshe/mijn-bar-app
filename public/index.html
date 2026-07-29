@@ -2,69 +2,210 @@
 <html lang="nl">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Lounge</title>
+    <title>The Glamour Lounge</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        body { font-family: sans-serif; background: #121212; color: #fff; padding: 20px; margin: 0; }
-        .gold { color: #d4af37; text-align: center; letter-spacing: 2px; }
-        .card { background: #1e1e1e; border: 1px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        select { background: #121212; color: #d4af37; border: 1px solid #333; padding: 5px; border-radius: 4px; font-weight: bold; }
-        .btn { background: #d4af37; color: #000; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid #d4af37; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        /* Het nieuwe Glittery Pink & White Thema */
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: linear-gradient(135deg, #fff5f8 0%, #ffe3ec 100%); 
+            color: #4a2834; 
+            padding: 20px; 
+            margin: 0; 
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Subtiel bewegend glitter/sparkle effect op de achtergrond */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                radial-gradient(circle, #fff 10%, transparent 20%),
+                radial-gradient(circle, #ffb6c1 15%, transparent 20%),
+                radial-gradient(circle, #fff 10%, transparent 20%);
+            background-size: 15px 15px, 25px 25px, 30px 30px;
+            background-position: 0 0, 10px 15px, 20px 5px;
+            opacity: 0.35;
+            z-index: -1;
+            animation: glitter 8s linear infinite;
+        }
+
+        @keyframes glitter {
+            0% { background-position: 0 0, 10px 15px, 20px 5px; }
+            100% { background-position: 100px 100px, 110px 115px, 120px 105px; }
+        }
+
+        .pink-header { 
+            text-align: center; 
+            padding: 25px 0 15px 0; 
+            border-bottom: 2px dashed #ffb6c1; 
+            margin-bottom: 25px; 
+        }
+        .pink-header h1 { 
+            color: #ff4d8d; 
+            margin: 0; 
+            font-size: 32px; 
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8), 0 0 10px rgba(255, 77, 141, 0.2);
+        }
+        .pink-header p { 
+            font-style: italic; 
+            font-size: 14px; 
+            color: #8b576c; 
+            margin-top: 5px; 
+        }
+
+        .card { 
+            background: rgba(255, 255, 255, 0.85); 
+            border: 1px solid #ffe3ec; 
+            padding: 15px; 
+            border-radius: 12px; 
+            margin-bottom: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 4px 15px rgba(255, 182, 193, 0.2);
+            backdrop-filter: blur(5px);
+        }
+
+        .drink-info strong {
+            font-size: 17px;
+            color: #5c2d40;
+        }
+
+        select { 
+            background: #fff; 
+            color: #ff4d8d; 
+            border: 1px solid #ffccd8; 
+            padding: 6px 10px; 
+            border-radius: 6px; 
+            font-weight: bold;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Glanzende roze knop met hover-effect */
+        .btn { 
+            background: linear-gradient(135deg, #ff75a0 0%, #ff4d8d 100%); 
+            color: #fff; 
+            border: none; 
+            padding: 10px 18px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            font-size: 15px;
+            cursor: pointer; 
+            box-shadow: 0 3px 10px rgba(255, 77, 141, 0.3);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 1px 5px rgba(255, 77, 141, 0.3);
+        }
+
+        .cart-bar { 
+            position: fixed; 
+            bottom: 0; left: 0; right: 0; 
+            background: rgba(255, 245, 248, 0.95); 
+            border-top: 2px solid #ff4d8d; 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+            box-shadow: 0 -5px 20px rgba(255, 182, 193, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        #note {
+            padding: 10px; 
+            background: #fff; 
+            border: 1px solid #ffccd8; 
+            color: #4a2834; 
+            border-radius: 6px;
+            outline: none;
+            font-size: 14px;
+        }
+        #note:focus {
+            border-color: #ff4d8d;
+        }
+
+        #username {
+            padding: 14px; 
+            width: 80%; 
+            border-radius: 8px; 
+            border: 1px solid #ffccd8; 
+            margin-bottom: 15px; 
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+            box-shadow: 0 3px 10px rgba(255, 182, 193, 0.15);
+        }
+        #username:focus {
+            border-color: #ff4d8d;
+        }
     </style>
 </head>
 <body>
 
-    <h1 class="gold">THE LOUNGE</h1>
-    <div id="queue-box" style="text-align:center; color:#888; margin-bottom:20px;">Wachtrij: <span id="q-num" style="color:#d4af37; font-weight:bold;">0</span> orders</div>
+    <div class="pink-header">
+        <h1>THE LOUNGE</h1>
+        <p>✨ Bubbles, Cocktails & Sparkles ✨</p>
+    </div>
+    
+    <div id="queue-box" style="text-align:center; color:#8b576c; margin-bottom:20px; font-size: 14px; font-weight: 500;">
+        Wachtrij: <span id="q-num" style="color:#ff4d8d; font-weight:bold; font-size:16px;">0</span> orders open
+    </div>
 
     <!-- INLOGSCHERM -->
     <div id="login-screen" style="text-align:center; margin-top:50px;">
-        <input type="text" id="username" placeholder="Uw naam..." style="padding:12px; width:80%; border-radius:4px; border:none; margin-bottom:15px;"><br>
-        <button class="btn" onclick="login()">Starten</button>
+        <p style="color: #8b576c; font-style: italic; margin-bottom: 15px;">Meld je aan voor toegang tot het menu</p>
+        <input type="text" id="username" placeholder="Typ je naam..."><br>
+        <button class="btn" onclick="login()">Menu Openen ✨</button>
     </div>
 
     <!-- MENUKAART -->
-    <div id="menu-screen" style="display:none; margin-bottom:150px;">
-        <p style="text-align:center; font-style:italic;">Welkom, <span id="user-display" style="color:#d4af37;"></span></p>
+    <div id="menu-screen" style="display:none; margin-bottom:170px;">
+        <p style="text-align:center; font-style:italic; color: #8b576c; margin-bottom: 20px;">Hey <span id="user-display" style="color:#ff4d8d; font-weight: bold;"></span>, kies je cocktail:</p>
         
         <div class="card">
-            <div><strong>Strawberry Daiquiri</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
+            <div class="drink-info"><strong>Strawberry Daiquiri 🍓</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
             <button class="btn" onclick="add('Strawberry Daiquiri', this)">+</button>
         </div>
 
         <div class="card">
-            <div><strong>Blood Orange Gin Fizz</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
+            <div class="drink-info"><strong>Blood Orange Gin Fizz 🍊</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
             <button class="btn" onclick="add('Blood Orange Gin Fizz', this)">+</button>
         </div>
 
         <div class="card">
-            <div><strong>Tequila Sunrise</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
+            <div class="drink-info"><strong>Tequila Sunrise 🌅</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
             <button class="btn" onclick="add('Tequila Sunrise', this)">+</button>
         </div>
 
         <div class="card">
-            <div><strong>Irish Gold Rush</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
+            <div class="drink-info"><strong>Irish Gold Rush 🍯</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
             <button class="btn" onclick="add('Irish Gold Rush', this)">+</button>
         </div>
 
         <div class="card">
-            <div><strong>Blue Lagoon</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
+            <div class="drink-info"><strong>Blue Lagoon 🌊</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
             <button class="btn" onclick="add('Blue Lagoon', this)">+</button>
         </div>
 
         <div class="card">
-            <div><strong>Long Island Iced Tea</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
+            <div class="drink-info"><strong>Long Island Iced Tea 🍹</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
             <button class="btn" onclick="add('Long Island Iced Tea', this)">+</button>
         </div>
     </div>
 
     <!-- WINKELMAND BALK -->
     <div id="cart-bar" class="cart-bar" style="display:none;">
-        <input type="text" id="note" placeholder="Opmerking (optioneel)..." style="padding:8px; background:#222; border:none; color:#fff; border-radius:4px;">
+        <input type="text" id="note" placeholder="Opmerking toevoegen (bijv. extra rietje)...">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div id="cart-preview" style="font-size:14px; color:#d4af37;">Mand is leeg</div>
-            <button class="btn" onclick="send()">Bestellen</button>
+            <div id="cart-preview" style="font-size:14px; color:#ff4d8d; font-weight: 500;">Mand is nog leeg</div>
+            <button class="btn" onclick="send()">Bestellen 💕</button>
         </div>
     </div>
 
@@ -76,7 +217,7 @@
 
         function login() {
             const input = document.getElementById('username').value.trim();
-            if (!input) return alert('Naam verplicht');
+            if (!input) return alert('Vul alstublieft een naam in');
             localStorage.setItem('bar_name', input);
             myName = input;
             showMenu();
@@ -99,19 +240,9 @@
         }
 
         function send() {
-            if (cart.length === 0) return alert('Mand is leeg!');
+            if (cart.length === 0) return alert('Je mandje is nog leeg!');
             socket.emit('order', { name: myName, drinks: cart, note: document.getElementById('note').value.trim() });
             cart = [];
             document.getElementById('note').value = '';
-            document.getElementById('cart-preview').innerText = 'Mand is leeg';
-            alert('Bestelling verzonden!');
-        }
-
-        socket.on('queue', (c) => document.getElementById('q-num').innerText = c);
-        
-        socket.on('ready', (name) => {
-            if (name === myName.toLowerCase().trim()) alert('Je drankje staat klaar bij de bar! 🎉');
-        });
-    </script>
-</body>
-</html>
+            document.getElementById('cart-preview').innerText = 'Mand is nog leeg';
+            alert('Je bestelling is onderweg naar de bar! 💕');}socket.on('queue', (c) => document.getElementById('q-num').innerText = c);socket.on('ready', (name) => {if (name === myName.toLowerCase().trim()) alert('Je drankje staat klaar bij de bar! 🎉💕');});
