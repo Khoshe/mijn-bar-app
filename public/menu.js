@@ -12,12 +12,13 @@ socket.on('queue-update', (count) => {
     if (countSpan) { countSpan.innerText = count; }
 });
 
-// NIEUW: Luister live of jouw drankje klaar is gemaakt door de bartender
+// Gecorrigeerd: Luister live of jouw drankje klaar is gemaakt
 socket.on('drink-ready-notification', (clientName) => {
     const currentUserName = localStorage.getItem('lounge_user_name');
     
-    // Alleen als de bartender jóuw naam heeft afgevinkt
-    if (clientName === currentUserName) {
+    // Maak beide namen schoon (geen spaties, alles in kleine letters) voor een 100% waterdichte match
+    if (clientName && currentUserName && clientName.trim().toLowerCase() === currentUserName.trim().toLowerCase()) {
+        
         // Haal de opgeslagen geschiedenis op
         let history = JSON.parse(localStorage.getItem('lounge_order_history')) || [];
         
@@ -36,6 +37,7 @@ socket.on('drink-ready-notification', (clientName) => {
         alert("Je bestelling staat klaar bij de bar! 🎉");
     }
 });
+
 
 // Check bij openen of er al een account en geschiedenis is opgeslagen
 document.addEventListener("DOMContentLoaded", () => {
