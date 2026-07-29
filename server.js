@@ -6,7 +6,7 @@ const io = require('socket.io')(http);
 app.use(express.static('public'));
 
 // PLAK HIERONDER JOUW GOOGLE WEB-APP URL TUSSEN DE QUOTES:
-const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1BSHVwOMzxBT_6pgO7jQL1AXXRzo2oMfSZkNvO5TSFMk/edit?pli=1&gid=0#gid=0";
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxizF1chLZuYrX_gwS9N12lK5GcP8YU0dKHGGbGATW160wLcyWnvo7B3PiIgApKVFjkaA/exec";
 
 let activeOrders = [];
 let memberTotals = {};
@@ -43,7 +43,7 @@ io.on('connection', (socket) => {
                 memberTotals[memberName][drinkKey] = (memberTotals[memberName][drinkKey] || 0) + 1;
 
                 // NIEUW: Stuur dit drankje live en permanent naar Google Sheets
-                if (GOOGLE_SHEET_URL !== "https://docs.google.com/spreadsheets/d/1BSHVwOMzxBT_6pgO7jQL1AXXRzo2oMfSZkNvO5TSFMk/edit?pli=1&gid=0#gid=0") {
+                if (GOOGLE_SHEET_URL !== "https://script.google.com/macros/s/AKfycbxizF1chLZuYrX_gwS9N12lK5GcP8YU0dKHGGbGATW160wLcyWnvo7B3PiIgApKVFjkaA/exec") {
                     fetch(GOOGLE_SHEET_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
