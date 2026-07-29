@@ -2,176 +2,116 @@
 <html lang="nl">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Lounge - Member Menu</title>
+    <title>The Lounge</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { --gold: #d4af37; --dark-bg: #121212; --card-bg: #1e1e1e; --text: #e0e0e0; }
-        body { font-family: 'Georgia', serif; background: var(--dark-bg); color: var(--text); padding: 20px; margin: 0; box-sizing: border-box; }
-        .header { text-align: center; padding: 20px 0; border-bottom: 1px solid var(--gold); margin-bottom: 25px; }
-        .header h1 { font-weight: 300; letter-spacing: 3px; color: var(--gold); margin: 0; font-size: 28px; }
-        .header p { font-style: italic; font-size: 14px; color: #888; margin-top: 5px; }
-        
-        .auth-screen { text-align: center; max-width: 400px; margin: 50px auto; padding: 30px; background: var(--card-bg); border-radius: 8px; border: 1px solid #333; }
-        .auth-screen h3 { color: var(--gold); font-weight: 400; margin-top: 0; }
-        .auth-input { width: 90%; padding: 14px; background: #121212; border: 1px solid #333; color: white; border-radius: 6px; font-size: 16px; text-align: center; margin-bottom: 20px; }
-        .auth-btn { background: var(--gold); color: black; border: none; padding: 12px 30px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; width: 90%; }
-        
-        .menu-screen { display: none; }
-        .welcome-text { font-style: italic; text-align: center; margin-bottom: 20px; color: var(--gold); font-size: 16px; }
-        .logout-link { font-size: 12px; color: #ff2e63; text-decoration: underline; cursor: pointer; display: block; margin-top: 5px; }
-
-        .category-title { color: var(--gold); font-size: 18px; letter-spacing: 1px; margin: 25px 0 15px 0; border-left: 3px solid var(--gold); padding-left: 10px; text-transform: uppercase; }
-        .menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        .menu-item { background: var(--card-bg); border-radius: 8px; overflow: hidden; display: flex; border: 1px solid #222; align-items: center; padding: 12px; }
-        .menu-img { width: 75px; height: 75px; object-fit: cover; border-radius: 6px; margin-right: 15px; }
-        .menu-info { flex: 1; }
-        .menu-info h4 { margin: 0 0 5px 0; font-weight: 400; font-size: 18px; color: #fff; }
-        .menu-info p { margin: 0 0 8px 0; font-size: 12px; color: #999; font-style: italic; line-height: 1.4; }
-        
-        .strength-selector { display: inline-flex; background: #121212; padding: 3px; border-radius: 4px; border: 1px solid #333; margin-top: 5px; }
-        .strength-btn { background: transparent; border: none; color: #666; padding: 5px 10px; font-size: 11px; cursor: pointer; border-radius: 3px; text-transform: uppercase; font-weight: bold; }
-        .strength-btn.active { background: var(--gold); color: black; }
-
-        .add-btn { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 10px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 18px; }
-        .add-btn:hover { background: var(--gold); color: black; }
-        
-        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid var(--gold); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
-        .order-btn { background: var(--gold); color: black; border: none; padding: 12px 25px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        body { font-family: sans-serif; background: #121212; color: #fff; padding: 20px; margin: 0; }
+        .gold { color: #d4af37; text-align: center; letter-spacing: 2px; }
+        .card { background: #1e1e1e; border: 1px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        select { background: #121212; color: #d4af37; border: 1px solid #333; padding: 5px; border-radius: 4px; font-weight: bold; }
+        .btn { background: #d4af37; color: #000; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a; border-top: 1px solid #d4af37; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>THE LOUNGE</h1>
-        <p>Fine Drinks & Exquisite Company</p>
+    <h1 class="gold">THE LOUNGE</h1>
+    <div id="queue-box" style="text-align:center; color:#888; margin-bottom:20px;">Wachtrij: <span id="q-num" style="color:#d4af37; font-weight:bold;">0</span> orders</div>
+
+    <!-- INLOGSCHERM -->
+    <div id="login-screen" style="text-align:center; margin-top:50px;">
+        <input type="text" id="username" placeholder="Uw naam..." style="padding:12px; width:80%; border-radius:4px; border:none; margin-bottom:15px;"><br>
+        <button class="btn" onclick="login()">Starten</button>
     </div>
 
-    <!-- SCHERM 1: LOGIN -->
-    <div id="auth-panel" class="auth-screen">
-        <h3>Welkom bij The Lounge</h3>
-        <p style="font-size: 14px; color: #888; margin-bottom: 20px;">Maak eenmalig een account aan met uw naam om te kunnen bestellen.</p>
-        <input type="text" id="username-input" class="auth-input" placeholder="Uw volledige naam...">
-        <button class="auth-btn" onclick="registerAccount()">Account Aanmaken</button>
+    <!-- MENUKAART -->
+    <div id="menu-screen" style="display:none; margin-bottom:150px;">
+        <p style="text-align:center; font-style:italic;">Welkom, <span id="user-display" style="color:#d4af37;"></span></p>
+        
+        <div class="card">
+            <div><strong>Strawberry Daiquiri</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
+            <button class="btn" onclick="add('Strawberry Daiquiri', this)">+</button>
+        </div>
+
+        <div class="card">
+            <div><strong>Blood Orange Gin Fizz</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
+            <button class="btn" onclick="add('Blood Orange Gin Fizz', this)">+</button>
+        </div>
+
+        <div class="card">
+            <div><strong>Tequila Sunrise</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
+            <button class="btn" onclick="add('Tequila Sunrise', this)">+</button>
+        </div>
+
+        <div class="card">
+            <div><strong>Irish Gold Rush</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
+            <button class="btn" onclick="add('Irish Gold Rush', this)">+</button>
+        </div>
+
+        <div class="card">
+            <div><strong>Blue Lagoon</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
+            <button class="btn" onclick="add('Blue Lagoon', this)">+</button>
+        </div>
+
+        <div class="card">
+            <div><strong>Long Island Iced Tea</strong><div style="margin-top:5px;"><select class="strength"><option value="Sterk">Sterk</option><option value="Medium">Medium</option></select></div></div>
+            <button class="btn" onclick="add('Long Island Iced Tea', this)">+</button>
+        </div>
     </div>
 
-    <!-- SCHERM 2: COCKTAILKAART -->
-    <div id="menu-panel" class="menu-screen">
-                <!-- Live Wachtrij Indicator -->
-        <div id="queue-indicator" style="background: #1f1f26; border: 1px solid #333; border-radius: 6px; padding: 12px; text-align: center; margin-bottom: 20px; font-size: 15px;">
-            ⏳ Status bar: <span id="queue-count" style="color: var(--gold); font-weight: bold; font-size: 16px;">0</span> bestellingen in de wachtrij
+    <!-- WINKELMAND BALK -->
+    <div id="cart-bar" class="cart-bar" style="display:none;">
+        <input type="text" id="note" placeholder="Opmerking (optioneel)..." style="padding:8px; background:#222; border:none; color:#fff; border-radius:4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div id="cart-preview" style="font-size:14px; color:#d4af37;">Mand is leeg</div>
+            <button class="btn" onclick="send()">Bestellen</button>
         </div>
+    </div>
 
-        <div class="welcome-text">
-            Lid: <span id="display-name"></span>
-            <span class="logout-link" onclick="logout()">Naam wijzigen</span>
-        </div>
+    <script>
+        const socket = io();
+        let cart = [], myName = localStorage.getItem('bar_name');
 
-        <div class="category-title">Signature Cocktails</div>
-        <div class="menu-grid">
+        if (myName) { showMenu(); }
+
+        function login() {
+            const input = document.getElementById('username').value.trim();
+            if (!input) return alert('Naam verplicht');
+            localStorage.setItem('bar_name', input);
+            myName = input;
+            showMenu();
+        }
+
+        function showMenu() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('menu-screen').style.display = 'block';
+            document.getElementById('cart-bar').style.display = 'block';
+            document.getElementById('user-display').innerText = myName;
+        }
+
+        function add(drinkName, btnNode) {
+            const strength = btnNode.parentElement.querySelector('.strength').value;
+            cart.push({ name: drinkName, strength: strength });
             
-            <div class="menu-item" id="item-daiquiri">
-                <img class="menu-img" src="https://unsplash.com">
-                <div class="menu-info">
-                    <h4>Strawberry Daiquiri</h4>
-                    <p>Witte rum blend, frisse limoensap en zoete, rijpe aardbeien. Gecrusht met ijs.</p>
-                    <div class="strength-selector">
-                        <button class="strength-btn" onclick="setStrength('daiquiri', 'Medium')">Medium</button>
-                        <button class="strength-btn active" onclick="setStrength('daiquiri', 'Sterk')">Sterk</button>
-                    </div>
-                </div>
-                <button class="add-btn" onclick="addToCart('Strawberry Daiquiri', 'daiquiri')">+</button>
-            </div>
+            const counts = {};
+            cart.forEach(x => counts[`${x.name} (${x.strength})`] = (counts[`${x.name} (${x.strength})`] || 0) + 1);
+            document.getElementById('cart-preview').innerText = Object.entries(counts).map(([k,v]) => `${v}x ${k}`).join(', ');
+        }
 
-            <div class="menu-item" id="item-ginfizz">
-                <img class="menu-img" src="https://unsplash.com">
-                <div class="menu-info">
-                    <h4>Blood Orange Gin Fizz</h4>
-                    <p>Botanische gin gemixt met bloedsinaasappel, een kneepje citroen en bruiswater.</p>
-                    <div class="strength-selector">
-                        <button class="strength-btn" onclick="setStrength('ginfizz', 'Medium')">Medium</button>
-                        <button class="strength-btn active" onclick="setStrength('ginfizz', 'Sterk')">Sterk</button>
-                    </div>
-                </div>
-                <button class="add-btn" onclick="addToCart('Blood Orange Gin Fizz', 'ginfizz')">+</button>
-            </div>
+        function send() {
+            if (cart.length === 0) return alert('Mand is leeg!');
+            socket.emit('order', { name: myName, drinks: cart, note: document.getElementById('note').value.trim() });
+            cart = [];
+            document.getElementById('note').value = '';
+            document.getElementById('cart-preview').innerText = 'Mand is leeg';
+            alert('Bestelling verzonden!');
+        }
 
-            <div class="menu-item" id="item-sunrise">
-                <img class="menu-img" src="https://unsplash.com">
-                <div class="menu-info">
-                    <h4>Tequila Sunrise</h4>
-                    <p>Premium tequila en frisse sinaasappelsap, afgetopt met een zinkende laag zoete grenadine.</p>
-                    <div class="strength-selector">
-                        <button class="strength-btn" onclick="setStrength('sunrise', 'Medium')">Medium</button>
-                        <button class="strength-btn active" onclick="setStrength('sunrise', 'Sterk')">Sterk</button>
-                    </div>
-                </div>
-                <button class="add-btn" onclick="addToCart('Tequila Sunrise', 'sunrise')">+</button>
-            </div>
-
-            <div class="menu-item" id="item-goldrush">
-                <img class="menu-img" src="https://unsplash.com">
-                <div class="menu-info">
-                    <h4>Irish Gold Rush</h4>
-                    <p>Zachte Ierse whiskey gecombineerd met frisse honing-citroensiroop en ginger ale.</p>
-                    <div class="strength-selector">
-                        <button class="strength-btn" onclick="setStrength('goldrush', 'Medium')">Medium</button>
-                        <button class="strength-btn active" onclick="setStrength('goldrush', 'Sterk')">Sterk</button>
-                    </div>
-                </div>
-                <button class="add-btn" onclick="addToCart('Irish Gold Rush', 'goldrush')">+</button>
-            </div>
-
-            <div class="menu-item" id="item-bluelagoon">
-                <img class="menu-img" src="https://unsplash.com">
-                <div class="menu-info">
-                    <h4>Blue Lagoon</h4>
-                    <p>Heldere wodka met Blue Curaçao en verfrissende sprite voor die iconische tropische kleur.</p>
-                    <div class="strength-selector">
-                        <button class="strength-btn" onclick="setStrength('bluelagoon', 'Medium')">Medium</button>
-                        <button class="strength-btn active" onclick="setStrength('bluelagoon', 'Sterk')">Sterk</button>
-                    </div>
-                </div>
-                <button class="add-btn" onclick="addToCart('Blue Lagoon', 'bluelagoon')">+</button>
-            </div>
-
-            <div class="menu-item" id="item-longisland">
-                <img class="menu-img" src="https://unsplash.com">
-                <div class="menu-info">
-                    <h4>Long Island Iced Tea</h4>
-                    <p>De ultieme klassieker: wodka, rum, tequila, gin en triple sec, afgetopt met cola.</p>
-                    <div class="strength-selector">
-                        <button class="strength-btn" onclick="setStrength('longisland', 'Medium')">Medium</button>
-                        <button class="strength-btn active" onclick="setStrength('longisland', 'Sterk')">Sterk</button>
-                    </div>
-                </div>
-                <button class="add-btn" onclick="addToCart('Long Island Iced Tea', 'longisland')">+</button>
-            </div>
-
-        </div>
-                    <!-- Bestelgeschiedenis Sectie -->
-        <div class="category-title" style="margin-top: 40px;">Mijn Bestellingen van vanavond</div>
-        <div id="order-history-container" style="background: var(--card-bg); border: 1px solid #222; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-            <ul id="history-list" style="margin: 0; padding-left: 20px; color: #aaa; line-height: 1.6; font-size: 15px;">
-                <li id="no-orders-text" style="list-style: none; margin-left: -20px; font-style: italic; color: #666;">Je hebt nog geen drankjes besteld.</li>
-            </ul>
-        </div>
-
-                <div style="height: 140px;"></div>
-        <div class="cart-bar" style="flex-direction: column; gap: 10px; align-items: stretch;">
-            <!-- Het nieuwe opmerkingenveld -->
-            <input type="text" id="order-note" placeholder="Opmerking (bijv. geen ijs, extra citroen)..." style="width: auto; margin-bottom: 0; padding: 10px; background: #222; font-size: 14px;">
-            
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <span style="font-size: 14px; color: #888;">Winkelmand:</span>
-                    <div id="cart-preview" style="font-weight: bold; color: var(--gold); font-size: 14px; max-width: 200px;">Geen drankjes</div>
-                </div>
-                <button class="order-btn" onclick="sendOrder()">Bestellen</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Hier koppelen we het losse menu.js bestand -->
-    <script src="menu.js"></script>
+        socket.on('queue', (c) => document.getElementById('q-num').innerText = c);
+        
+        socket.on('ready', (name) => {
+            if (name === myName.toLowerCase().trim()) alert('Je drankje staat klaar bij de bar! 🎉');
+        });
+    </script>
 </body>
 </html>

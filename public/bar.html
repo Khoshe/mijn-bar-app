@@ -2,31 +2,51 @@
 <html lang="nl">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bar Control Center</title>
+    <title>Bar Dashboard</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { --gold: #d4af37; --bg: #141419; --card: #1f1f26; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: #fff; padding: 20px; margin: 0; }
-        h2 { font-weight: 300; letter-spacing: 2px; color: var(--gold); border-bottom: 1px solid #333; padding-bottom: 15px; margin-top: 0; }
-        .order-container { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        .order-card { background: var(--card); border-radius: 8px; border: 1px solid #2d2d3a; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .order-details h3 { margin: 0 0 5px 0; color: #fff; font-size: 22px; font-weight: 400; letter-spacing: 0.5px; }
-        .drink-list { margin: 10px 0 0 0; padding-left: 20px; color: #b3b3cc; font-size: 17px; line-height: 1.6; }
-        .badge { font-size: 12px; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-left: 5px; text-transform: uppercase; }
-        .badge.medium { background: #d4af37; color: black; }
-        .badge.sterk { background: #ff2e63; color: white; }
-        .time-stamp { color: #555; font-size: 12px; margin-top: 8px; display: block; }
-        .done-btn { background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px; }
+        body { font-family: sans-serif; background: #141419; color: #fff; padding: 20px; }
+        .order { background: #1f1f26; border: 1px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-ready { background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <h2>📥 Live Bestellingen Overview</h2>
-    <div class="order-container" id="order-list"></div>
+    <h2>📥 Live Bestellingen (<span id="q-num">0</span>)</h2>
+    <div id="orders-container"></div>
+    <audio id="sound" src="https://mixkit.co" preload="auto"></audio>
 
-    <audio id="notification-sound" src="https://mixkit.co" preload="auto"></audio>
+    <script>
+        const socket = io();
+        
+        socket.on('queue', (c) => document.getElementById('q-num').innerText = c);
 
-    <!-- Hier koppelen we het losse dashboard.js bestand -->
-    <script src="dashboard.js"></script>
+        socket.on('bar-order', (data) => {
+            document.getElementById('sound').play().catch(() => {});
+
+            const counts = {};
+            data.drinks.forEach(x => counts[`${x.name} [${x.strength}]`] = (counts[`${x.name} [${x.strength}]`] || 0) + 1);
+            const listHtml = Object.entries(counts).map(([k,v]) => `<li><strong>${v}x</strong> ${k}</li>`).join('');
+            
+            const noteHtml = data.note ? `<p style="color:#ff9f43; margin:5px 0 0 0;">📝 "${data.note}"</p>` : '';
+
+            const card = document.createElement('div');
+            card.className = 'order';
+            card.innerHTML = `
+                <div>
+                    <h3 style="margin:0;">${data.name}</h3>
+                    <ul style="margin:5px 0; padding-left:20px;">${listHtml}</ul>
+                    ${noteHtml}
+                </div>
+                <button class="btn-ready" onclick="finish('${data.name}', this)">Klaar</button>
+            `;
+            document.getElementById('orders-container').insertBefore(card, document.getElementById('orders-container').firstChild);
+        });
+
+        function finish(name, btn) {
+            socket.emit('done', name);
+            btn.parentElement.remove();
+        }
+    </script>
 </body>
 </html>
